@@ -1,28 +1,32 @@
-﻿  engine.cpp
-D:\Nauka\repos\GK_Lab4\GK_Lab4\mesh.h(89,1): warning C4267: "argument": konwersja z "size_t" do "GLsizei", możliwa utrata danych
-D:\Nauka\repos\GK_Lab4\GK_Lab4\engine.cpp(232,85): warning C4305: "inicjowanie": obcięcie z "double" do "float"
-D:\Nauka\repos\GK_Lab4\GK_Lab4\engine.cpp(237,86): warning C4305: "inicjowanie": obcięcie z "double" do "float"
-D:\Nauka\repos\GK_Lab4\GK_Lab4\engine.cpp(384,22): warning C4305: "inicjowanie": obcięcie z "double" do "float"
-D:\Nauka\repos\GK_Lab4\GK_Lab4\engine.cpp(446,15): warning C4244: "=": konwersja z "double" do "float", możliwa utrata danych
-D:\Nauka\repos\GK_Lab4\GK_Lab4\engine.cpp(447,32): warning C4244: "=": konwersja z "double" do "float", możliwa utrata danych
-D:\Nauka\repos\GK_Lab4\GK_Lab4\engine.cpp(457,71): warning C4244: "=": konwersja z "double" do "T", możliwa utrata danych
+﻿  camera.cpp
+  engine.cpp
+D:\Nauka\Programowanko\Git\GK_Projekt3D\GK_Lab4\mesh.h(89,1): warning C4267: "argument": konwersja z "size_t" do "GLsizei", możliwa utrata danych
+D:\Nauka\Programowanko\Git\GK_Projekt3D\GK_Lab4\engine.cpp(232,85): warning C4305: "inicjowanie": obcięcie z "double" do "float"
+D:\Nauka\Programowanko\Git\GK_Projekt3D\GK_Lab4\engine.cpp(237,86): warning C4305: "inicjowanie": obcięcie z "double" do "float"
+D:\Nauka\Programowanko\Git\GK_Projekt3D\GK_Lab4\engine.cpp(384,22): warning C4305: "inicjowanie": obcięcie z "double" do "float"
+D:\Nauka\Programowanko\Git\GK_Projekt3D\GK_Lab4\engine.cpp(446,15): warning C4244: "=": konwersja z "double" do "float", możliwa utrata danych
+D:\Nauka\Programowanko\Git\GK_Projekt3D\GK_Lab4\engine.cpp(447,32): warning C4244: "=": konwersja z "double" do "float", możliwa utrata danych
+D:\Nauka\Programowanko\Git\GK_Projekt3D\GK_Lab4\engine.cpp(457,71): warning C4244: "=": konwersja z "double" do "T", możliwa utrata danych
           with
           [
               T=float
           ]
-D:\Nauka\repos\GK_Lab4\GK_Lab4\engine.cpp(465,71): warning C4244: "=": konwersja z "double" do "T", możliwa utrata danych
+D:\Nauka\Programowanko\Git\GK_Projekt3D\GK_Lab4\engine.cpp(465,71): warning C4244: "=": konwersja z "double" do "T", możliwa utrata danych
           with
           [
               T=float
           ]
-D:\Nauka\repos\GK_Lab4\GK_Lab4\engine.cpp(474,71): warning C4244: "=": konwersja z "double" do "T", możliwa utrata danych
+D:\Nauka\Programowanko\Git\GK_Projekt3D\GK_Lab4\engine.cpp(474,71): warning C4244: "=": konwersja z "double" do "T", możliwa utrata danych
           with
           [
               T=float
           ]
-D:\Nauka\repos\GK_Lab4\GK_Lab4\engine.cpp(482,71): warning C4244: "=": konwersja z "double" do "T", możliwa utrata danych
+D:\Nauka\Programowanko\Git\GK_Projekt3D\GK_Lab4\engine.cpp(482,71): warning C4244: "=": konwersja z "double" do "T", możliwa utrata danych
           with
           [
               T=float
           ]
-  GK_Lab4.vcxproj -> D:\Nauka\repos\GK_Lab4\x64\Debug\GK_Lab4.exe
+  inputprocessing.cpp
+  Generowanie kodu...
+  glad.c
+  GK_Lab4.vcxproj -> D:\Nauka\Programowanko\Git\GK_Projekt3D\x64\Debug\GK_Lab4.exe
