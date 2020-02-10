@@ -1,0 +1,9 @@
+﻿################################################################################
+# Ten plik .gitignore został utworzony automatycznie przez Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/GK_Lab4/v16
+/x64/Debug
+/x64/Release
+/Timeline 1.mov
+/GK_Lab4/.vs

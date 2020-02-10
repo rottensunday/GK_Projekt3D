@@ -1,0 +1,93 @@
+#version 330 core
+
+in vec2 UV;
+in vec3 Position_worldspace;
+in vec3 EyeDirection_cameraspace;
+in vec3 LightDirection_cameraspace;
+
+in vec3 LightDirection_tangentspace;
+in vec3 EyeDirection_tangentspace;
+
+in mat4 TBN;
+
+layout(location = 0) out vec3 color;
+
+
+struct point_light_info {
+    vec3 position;
+	vec3 light_color;
+	float light_power;
+
+    float constant;
+    float linear;
+    float quadratic;
+};
+
+uniform samplerCube depthCubemap;
+uniform sampler2D texture_diffuse1;
+uniform sampler2D texture_specular1;
+uniform sampler2D texture_normal1;
+uniform sampler2D texture_height1;
+uniform mat4 model;
+uniform mat4 view;
+uniform point_light_info point_light;
+uniform float far_plane;
+uniform bool isBlinn;
+
+float ShadowCalculation(vec3 position)
+{
+    // get vector between fragment position and light position
+    vec3 fragToLight = position - point_light.position;
+    // ise the fragment to light vector to sample from the depth map    
+    float closestDepth = texture(depthCubemap, fragToLight).r;
+    // it is currently in linear range between [0,1], let's re-transform it back to original depth value
+    closestDepth *= far_plane;
+    // now get current linear depth as the length between the fragment and light position
+    float currentDepth = length(fragToLight);
+    // test for shadows
+    float bias = 0.05; // we use a much larger bias since depth is now in [near_plane, far_plane] range
+    float shadow = currentDepth -  bias > closestDepth ? 0.0 : 1.0;        
+    // display closestDepth as debug (to visualize depth cubemap)
+    // FragColor = vec4(vec3(closestDepth / far_plane), 1.0);    
+        
+    return shadow;
+}
+
+void main(){
+    vec3 LightColor = point_light.light_color;
+	float LightPower = point_light.light_power;
+
+	vec3 MaterialDiffuseColor = texture(texture_diffuse1, UV).rgb;
+	vec3 MaterialAmbientColor = vec3(0.03,0.03,0.03) * MaterialDiffuseColor;
+	vec3 MaterialSpecularColor = texture(texture_specular1, UV).rgb * 0.3;
+
+	vec3 TextureNormal_tangentspace = normalize(texture( texture_normal1, vec2(UV.x, UV.y) ).rgb*2.0 - 1.0);
+
+	float distance = length(point_light.position - Position_worldspace);
+
+	vec3 n = TextureNormal_tangentspace;
+		
+
+	vec3 l = normalize(LightDirection_tangentspace);
+	float cosTheta = clamp(dot(n,l),0,1);
+	float cosAlpha;
+	if(isBlinn){
+		vec3 halfDir = normalize(LightDirection_tangentspace + EyeDirection_tangentspace);
+		cosAlpha = clamp(dot(halfDir, n), 0, 1);
+	}
+	else{
+		vec3 E = normalize(EyeDirection_tangentspace);
+		vec3 R = reflect(-l,n);
+		cosAlpha = clamp(dot(E,R), 0, 1);
+	}
+
+	float visibility = ShadowCalculation(Position_worldspace);
+	if(visibility < 0.1) visibility = 0.5;
+	else visibility = 1.0;
+
+	float attenuation = point_light.constant + point_light.linear * distance + point_light.quadratic * distance * distance;
+
+	color =  
+	visibility * MaterialDiffuseColor * LightColor * LightPower * cosTheta / attenuation +
+	visibility * MaterialSpecularColor * LightColor * LightPower * pow(cosAlpha,5) / attenuation;
+}

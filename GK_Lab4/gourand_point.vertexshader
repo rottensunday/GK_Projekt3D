@@ -1,0 +1,128 @@
+#version 330 core
+
+layout(location = 0) in vec3 vertexPosition_modelspace;
+layout(location = 1) in vec3 vertexNormal_modelspace;
+layout(location = 2) in vec2 vertexUV;
+layout(location = 3) in vec3 vertexTangent_modelspace;
+layout(location = 4) in vec3 vertexBitangent_modelspace;
+
+out vec2 UV;
+out vec3 Position_worldspace;
+out vec3 EyeDirection_cameraspace;
+out vec3 LightDirection_cameraspace;
+
+out vec3 col;
+
+out vec3 LightDirection_tangentspace;
+out vec3 EyeDirection_tangentspace;
+
+out vec4 ShadowCoord;
+
+out mat4 TBN;
+
+struct point_light_info {
+    vec3 position;
+	vec3 light_color;
+	float light_power;
+
+    float constant;
+    float linear;
+    float quadratic;
+};
+
+uniform samplerCube depthCubemap;
+uniform sampler2D texture_diffuse1;
+uniform sampler2D texture_specular1;
+uniform sampler2D texture_normal1;
+uniform sampler2D texture_height1;
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+uniform point_light_info point_light;
+uniform float far_plane;
+uniform bool isBlinn;
+
+
+float ShadowCalculation(vec3 position)
+{
+    // get vector between fragment position and light position
+    vec3 fragToLight = position - point_light.position;
+    // ise the fragment to light vector to sample from the depth map    
+    float closestDepth = texture(depthCubemap, fragToLight).r;
+    // it is currently in linear range between [0,1], let's re-transform it back to original depth value
+    closestDepth *= far_plane;
+    // now get current linear depth as the length between the fragment and light position
+    float currentDepth = length(fragToLight);
+    // test for shadows
+    float bias = 0.05; // we use a much larger bias since depth is now in [near_plane, far_plane] range
+    float shadow = currentDepth -  bias > closestDepth ? 0.0 : 1.0;        
+    // display closestDepth as debug (to visualize depth cubemap)
+    // FragColor = vec4(vec3(closestDepth / far_plane), 1.0);    
+        
+    return shadow;
+}
+
+void main(){
+	gl_Position = projection * view * model * vec4(vertexPosition_modelspace, 1);
+	Position_worldspace = (model * vec4(vertexPosition_modelspace,1)).xyz;
+	vec3 vertexPosition_cameraspace = ( view * model * vec4(vertexPosition_modelspace,1)).xyz;
+	EyeDirection_cameraspace = vec3(0,0,0) - vertexPosition_cameraspace;
+	vec3 LightPosition_worldspace = point_light.position;
+
+	vec3 LightPosition_cameraspace = ( view * vec4(LightPosition_worldspace,1)).xyz;
+	LightDirection_cameraspace = LightPosition_cameraspace + EyeDirection_cameraspace;
+
+	UV = vertexUV;
+
+	mat3 modelview = mat3(model*view);
+
+	vec3 vertexTangent_cameraspace = modelview*vertexTangent_modelspace;
+	vec3 vertexBitangent_cameraspace = modelview*vertexBitangent_modelspace;
+	vec3 vertexNormal_cameraspace = modelview*vertexNormal_modelspace;
+
+	mat3 TBN = transpose(mat3(
+		vertexTangent_cameraspace,
+		vertexBitangent_cameraspace,
+		vertexNormal_cameraspace	
+	));
+
+	LightDirection_tangentspace = TBN * LightDirection_cameraspace;
+	EyeDirection_tangentspace =  TBN * EyeDirection_cameraspace;
+
+	    vec3 LightColor = point_light.light_color;
+	float LightPower = point_light.light_power;
+
+	vec3 MaterialDiffuseColor = texture(texture_diffuse1, UV).rgb;
+	vec3 MaterialAmbientColor = vec3(0.03,0.03,0.03) * MaterialDiffuseColor;
+	vec3 MaterialSpecularColor = texture(texture_specular1, UV).rgb * 0.3;
+
+	vec3 TextureNormal_tangentspace = normalize(texture( texture_normal1, vec2(UV.x, UV.y) ).rgb*2.0 - 1.0);
+
+	float distance = length(point_light.position - Position_worldspace);
+
+	vec3 n = TextureNormal_tangentspace;
+		
+
+	vec3 l = normalize(LightDirection_tangentspace);
+	float cosTheta = clamp(dot(n,l),0,1);
+	float cosAlpha;
+	if(isBlinn){
+		vec3 halfDir = normalize(LightDirection_tangentspace + EyeDirection_tangentspace);
+		cosAlpha = clamp(dot(halfDir, n), 0, 1);
+	}
+	else{
+		vec3 E = normalize(EyeDirection_tangentspace);
+		vec3 R = reflect(-l,n);
+		cosAlpha = clamp(dot(E,R), 0, 1);
+	}
+
+	float visibility = ShadowCalculation(Position_worldspace);
+	if(visibility < 0.1) visibility = 0.5;
+	else visibility = 1.0;
+
+	float attenuation = point_light.constant + point_light.linear * distance + point_light.quadratic * distance * distance;
+
+	col =  
+	visibility * MaterialDiffuseColor * LightColor * LightPower * cosTheta / attenuation +
+	visibility * MaterialSpecularColor * LightColor * LightPower * pow(cosAlpha,5) / attenuation;
+}

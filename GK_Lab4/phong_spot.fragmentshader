@@ -1,0 +1,78 @@
+#version 330 core
+
+in vec2 UV;
+in vec3 Position_worldspace;
+in vec3 EyeDirection_cameraspace;
+in vec3 LightDirection_cameraspace;
+
+in vec3 LightDirection_tangentspace;
+in vec3 EyeDirection_tangentspace;
+
+in mat4 TBN;
+
+layout(location = 0) out vec3 color;
+
+
+struct spot_light_info {
+    vec3 position;
+    vec3 direction;
+    vec3 light_color;
+
+    float cutOff;
+	float outerCutOff;
+    float light_power;
+    float constant;
+    float linear;
+    float quadratic;
+};
+
+uniform sampler2D texture_diffuse1;
+uniform sampler2D texture_specular1;
+uniform sampler2D texture_normal1;
+uniform sampler2D texture_height1;
+uniform mat4 model;
+uniform mat4 view;
+uniform spot_light_info spot_light;
+uniform bool isBlinn;
+
+void main(){
+    vec3 LightColor = spot_light.light_color;
+	float LightPower = spot_light.light_power;
+
+	vec3 MaterialDiffuseColor = texture(texture_diffuse1, UV).rgb;
+	vec3 MaterialAmbientColor = vec3(0.03,0.03,0.03) * MaterialDiffuseColor;
+	vec3 MaterialSpecularColor = texture(texture_specular1, UV).rgb * 0.3;
+	
+	vec3 lightDir = normalize(spot_light.position - Position_worldspace);
+	float theta = dot(lightDir, normalize(-spot_light.direction)); 
+    float epsilon = (spot_light.cutOff - spot_light.outerCutOff);
+    float intensity = clamp((theta - spot_light.outerCutOff) / epsilon, 0.0, 1.0);
+
+	vec3 TextureNormal_tangentspace = normalize(texture( texture_normal1, vec2(UV.x, UV.y) ).rgb*2.0 - 1.0);
+
+	float distance = length(spot_light.position - Position_worldspace);
+	vec3 n = TextureNormal_tangentspace;
+		
+
+	vec3 l = normalize(LightDirection_tangentspace);
+	float cosTheta = clamp(dot(n,l),0,1);
+	float cosAlpha;
+	if(isBlinn){
+		vec3 halfDir = normalize(LightDirection_tangentspace + EyeDirection_tangentspace);
+		cosAlpha = clamp(dot(halfDir, n), 0, 1);
+	}
+	else{
+		vec3 E = normalize(EyeDirection_tangentspace);
+		vec3 R = reflect(-l,n);
+		cosAlpha = clamp(dot(E,R), 0, 1);
+	}
+
+	float attenuation = spot_light.constant + spot_light.linear * distance + spot_light.quadratic * distance * distance;
+
+	color = intensity * ( 
+	MaterialDiffuseColor * LightColor * LightPower * cosTheta / attenuation +
+	MaterialSpecularColor * LightColor * LightPower * pow(cosAlpha,5) / attenuation );
+
+
+	
+}

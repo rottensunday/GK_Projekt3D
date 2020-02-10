@@ -1,0 +1,27 @@
+------------------------------------
+UŻYTKOWANIE:
+	'Q' aby włączyć kursor i móc modyfikować własności obiektów (np. wyłączyć światło, zmienić kolor światła, zmienić położenie różnych obiektów) w AntTweakerze
+	'Q' drugi raz, aby znowu móc kontrolować Mecha
+	Ruch strzałkami oraz myszką.
+
+AntTweaker:
+	'FPS' - włącz tryb pierwszoosobowy
+	'TPS' - włącz tryb trzeciosobowy
+	'Still' - włącz kamerę nieruchomą
+	'Phong' - włącz model oświetlenia Phonga
+	'Blinn' - włącz model oświetlenia Blinna
+
+------------------------------------
+CO WARTO ZOBACZYĆ:
+	W grze warto wejść do pomieszczenia tuż naprzeciwko gracza po rozpoczęciu. Mamy tam kilka kul o zmiennych własnościach i poruszające się światła.
+	Wokół naszego Mecha porusza się (rotuje) ciągle źródło światła, dobrze to widać po włączeniu trybu TPS.
+	Nasz Mech posiada latarkę. Jeżeli zbliżymy się do jakiegoś obiektu to widzimy, że oświetlamy go. Latarka ma pewien kąt pod którym świeci.
+	W 'grze' mamy cykl dnia i nocy. Rano i wieczorem niebo jest pomarańczowe, w ciągu dnia - niebieskie, nocą mamy ciemne niebo niegwieździste. Im dalej w noc tym mocniejsza jest mgła: obiekty bliższe nam zaczynają się rozmywać (kolor jest mixowany z kolorem szarym).
+
+------------------------------------
+IMPLEMENTACJA:
+	W silniku mamy zaimplementowane 3 rodzaje światła: światło kierunkowe, światło punktowe oraz latarkę.
+	Światła kierunkowe oraz światła punktowe rzucają dynamiczne cienie. Cienie są zaimplementowane algorytmem shadow mappingu: najpierw robimy przejście silnika aby z perspektywy źródła światła zapisać głębokości punktów do tekstury, a potem renderujemy scenę normalnie. Jeśli odległość punktu od światła jest większa niż wartość w teksturze dla odpowiadającego punktu, to punkt powinien być w cieniu.
+	Scena jest renderowana z perspektywy każdego źródła światła oddzielnie, a następnie kolory wynikowe są blendowane. (wynikiem jest niestety średnia wydajność jeśli świateł jest wiele).
+	W silniku mamy zaimplementowanie teksturowanie. Każdemu modelowi powinny odpowiadać tekstury: diffuse (czyli po prostu kolor siatki), normal map (mapa wektorów normalnych), specular map (mapa wartości spekularnych). W każdym shaderze spodziewamy się otrzymać te tekstury na wejściu i na ich podstawie wyliczamy kolor wynikowy fragmentu.
+	Większość klas zaimplementowana jest w pliku model.h
